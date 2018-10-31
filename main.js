@@ -70,9 +70,6 @@ function showCards() {
     };
 };
 
-
-
-
 document.addEventListener('click', function(e){
     if (e.target.id == 'input_cancel') {
         document.getElementsByClassName('modal_overlay')[0].remove();
@@ -81,3 +78,42 @@ document.addEventListener('click', function(e){
     };
 });
 document.getElementById('add_task').addEventListener('click', showModal);
+
+
+
+document.addEventListener('mousedown', function(e){
+    var moveCard;
+    if (e.target.classList == 'card') {
+        moveCard = e.target;
+    } else if (e.target.parentElement.classList == 'card') {
+        moveCard = e.target.parentElement;
+    } else {
+        return false;
+    };
+    var boardCoord = [100];
+    boardCoord.push(100 + ((window.outerWidth - 100) / 3)); 
+    boardCoord.push(100 + (((window.outerWidth - 100) / 3) * 2));
+    for (var i = 0; i < boardCoord.length; i++) {
+        if (e.clientX > boardCoord[i] && e.clientX < boardCoord[i + 1]) {
+            document.getElementsByClassName('board_container')[0].children[i].classList.add('start_card_move');
+        }
+    }
+    function cardMove(move){
+        if (document.getElementsByClassName('has_moved_card').length > 0) {
+            document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
+        }
+        for (var i = 0; i < boardCoord.length; i++) {
+            if (move.clientX > boardCoord[i] && move.clientX < boardCoord[i + 1]) {
+                if (document.getElementsByClassName('board_container')[0].children[i].classList.contains('has_moved_card')) {
+                    return false;
+                }
+                document.getElementsByClassName('board_container')[0].children[i].classList.add('has_moved_card');
+            };
+        }
+    };
+    document.addEventListener('mousemove', cardMove);
+    document.addEventListener('mouseup', function(){
+        document.removeEventListener('mousemove', cardMove);
+        //document.getElementsByClassName('start_card_move')[0].classList.remove('start_card_move');
+    });
+});

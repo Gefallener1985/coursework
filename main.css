@@ -130,7 +130,7 @@ html, body {
             box-sizing: border-box;
     padding: 8px;
 }
-.board_container > div:after {
+.board_container > div:before {
     display: block;
     content: '';
     width: 0;
@@ -140,8 +140,11 @@ html, body {
     top: 0;
     right: 0;
 }
-.board_container > div:nth-child(3):after {
+.board_container > div:nth-child(3):before {
     display: none;
+}
+.board_container > div.has_moved_card {
+    background: #5f5f5f;
 }
 
 
