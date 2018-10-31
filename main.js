@@ -79,7 +79,10 @@ document.addEventListener('click', function(e){
 });
 document.getElementById('add_task').addEventListener('click', showModal);
 
-
+function changeActionBtn(card, status){
+    var cardStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
+    card.getElementsByClassName('move_this_task')[0].innerText = cardStatusBtn[status];
+};
 
 document.addEventListener('mousedown', function(e){
     var moveCard;
@@ -90,14 +93,19 @@ document.addEventListener('mousedown', function(e){
     } else {
         return false;
     };
+    document.body.classList.add('if_moved');
     var boardCoord = [100];
     boardCoord.push(100 + ((window.outerWidth - 100) / 3)); 
     boardCoord.push(100 + (((window.outerWidth - 100) / 3) * 2));
+    boardCoord.push(window.outerWidth);
+    var startColumn;
     for (var i = 0; i < boardCoord.length; i++) {
         if (e.clientX > boardCoord[i] && e.clientX < boardCoord[i + 1]) {
-            document.getElementsByClassName('board_container')[0].children[i].classList.add('start_card_move');
+            startColumn = document.getElementsByClassName('board_container')[0].children[i];
         }
     }
+    startColumn.classList.add('start_card_move');
+    var cardStatus;
     function cardMove(move){
         if (document.getElementsByClassName('has_moved_card').length > 0) {
             document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
@@ -107,13 +115,19 @@ document.addEventListener('mousedown', function(e){
                 if (document.getElementsByClassName('board_container')[0].children[i].classList.contains('has_moved_card')) {
                     return false;
                 }
+                cardStatus = i;
                 document.getElementsByClassName('board_container')[0].children[i].classList.add('has_moved_card');
             };
         }
     };
     document.addEventListener('mousemove', cardMove);
-    document.addEventListener('mouseup', function(){
+    document.addEventListener('mouseup', endMove);
+    function endMove(){
         document.removeEventListener('mousemove', cardMove);
-        //document.getElementsByClassName('start_card_move')[0].classList.remove('start_card_move');
-    });
+        document.removeEventListener('mouseup', endMove);
+        startColumn.classList.remove('start_card_move');
+        changeActionBtn(moveCard, cardStatus);
+        document.getElementsByClassName('has_moved_card')[0].appendChild(moveCard);
+        document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
+    }
 });
