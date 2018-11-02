@@ -79,9 +79,13 @@ document.addEventListener('click', function(e){
 });
 document.getElementById('add_task').addEventListener('click', showModal);
 
-function changeActionBtn(card, status){
+function changeCardStatus(card, status){
     var cardStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
+    var taskStatus = ['backlog_list', 'work_list', 'done_list'];
+    var cardId = +card.id;
+    allTasks[cardId]['taskstatus'] = taskStatus[status];
     card.getElementsByClassName('move_this_task')[0].innerText = cardStatusBtn[status];
+    console.log(allTasks);
 };
 
 document.addEventListener('mousedown', function(e){
@@ -95,9 +99,10 @@ document.addEventListener('mousedown', function(e){
     };
     document.body.classList.add('if_moved');
     var boardCoord = [100];
-    boardCoord.push(100 + ((window.outerWidth - 100) / 3)); 
-    boardCoord.push(100 + (((window.outerWidth - 100) / 3) * 2));
-    boardCoord.push(window.outerWidth);
+    var bodyWidth = parseInt(getComputedStyle(document.body).width);
+    boardCoord.push(100 + ((bodyWidth - 100) / 3)); 
+    boardCoord.push(100 + (((bodyWidth - 100) / 3) * 2));
+    boardCoord.push(bodyWidth);
     var startColumn;
     for (var i = 0; i < boardCoord.length; i++) {
         if (e.clientX > boardCoord[i] && e.clientX < boardCoord[i + 1]) {
@@ -126,8 +131,10 @@ document.addEventListener('mousedown', function(e){
         document.removeEventListener('mousemove', cardMove);
         document.removeEventListener('mouseup', endMove);
         startColumn.classList.remove('start_card_move');
-        changeActionBtn(moveCard, cardStatus);
+        changeCardStatus(moveCard, cardStatus);
         document.getElementsByClassName('has_moved_card')[0].appendChild(moveCard);
         document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
     }
 });
+
+//TO DD - move card position and change his status from click on action buttons
