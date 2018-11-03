@@ -9,21 +9,38 @@ var allTasks = [
 ];
 var notShow = false;
 
+class Card {
+    constructor(id, title, text, status){
+        this.id = id;
+        this.taskname = title;
+        this.tasktext = text;
+        this.taskstatus = status;
+    }
+    createNewCard(){
+        allTasks.push(this);
+    }
+    changeStatus(status) {
+        var taskStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
+        var taskStatus = ['backlog_list', 'work_list', 'done_list'];
+        this.taskstatus = taskStatus[status];
+        document.getElementById(this.id).getElementsByClassName('move_this_task')[0].innerText = taskStatusBtn[status];
+    }
+    
+}
+
 function addCard(){
     validateModal();
     if (notShow) {
         return false;
     } else {
-        var createdCard = {};
+        var newId;
         if (allTasks.length == 0) {
-            createdCard['id'] = 0;
+            newId = 0
         } else {
-            createdCard['id'] = allTasks[(allTasks.length - 1)]['id'] + 1;
+            newId = allTasks[(allTasks.length - 1)]['id'] + 1;
         };
-        createdCard['taskname'] = document.getElementById('input_name').value;
-        createdCard['tasktext'] = document.getElementById('input_text').value;
-        createdCard['taskstatus'] = 'backlog_list';
-        allTasks.push(createdCard);
+        var newCard = new Card(newId, document.getElementById('input_name').value, document.getElementById('input_text').value, 'backlog_list');
+        newCard.createNewCard();
         document.getElementsByClassName('modal_overlay')[0].remove();
         showCards();
     };
@@ -46,12 +63,23 @@ function validateModal(){
     };
 };
 
-function showModal(){
-    var addModal = document.createElement('div');
-    addModal.setAttribute('class', 'modal_overlay');
-    addModal.innerHTML = '<div class="modal_body"><div class="modal_title">Новая задача</div><div class="modal_name"><input id="input_name" type="text" placeholder="Название задачи"></div><div class="modal_text"><textarea id="input_text" placeholder="Текст задачи"></textarea></div><div class="modal_action"><button id="input_cancel">Отменить</button><button id="input_ok">Сохранить</button></div></div>';
-    document.body.appendChild(addModal);
-};
+class Modal {
+    constructor() {
+        this.tagname = 'div';
+        this.class = 'modal_overlay';
+        this.html = '<div class="modal_body"><div class="modal_title">Новая задача</div><div class="modal_name"><input id="input_name" type="text" placeholder="Название задачи"></div><div class="modal_text"><textarea id="input_text" placeholder="Текст задачи"></textarea></div><div class="modal_action"><button id="input_cancel">Отменить</button><button id="input_ok">Сохранить</button></div></div>';
+    };
+    showNewModal(){
+        var addModal = document.createElement(this.tagname);
+        addModal.setAttribute('class', this.class);
+        addModal.innerHTML = this.html;
+        document.body.appendChild(addModal);
+    }
+}
+document.getElementById('add_task').addEventListener('click', function(){
+    var newModal = new Modal;
+    newModal.showNewModal();
+});
 
 function showCards() {
     for (var i = 0; i < document.getElementsByClassName('board_container')[0].children.length; i++) {
@@ -77,16 +105,6 @@ document.addEventListener('click', function(e){
         addCard();
     };
 });
-document.getElementById('add_task').addEventListener('click', showModal);
-
-function changeCardStatus(card, status){
-    var cardStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
-    var taskStatus = ['backlog_list', 'work_list', 'done_list'];
-    var cardId = +card.id;
-    allTasks[cardId]['taskstatus'] = taskStatus[status];
-    card.getElementsByClassName('move_this_task')[0].innerText = cardStatusBtn[status];
-    console.log(allTasks);
-};
 
 document.addEventListener('mousedown', function(e){
     var moveCard;
@@ -131,7 +149,7 @@ document.addEventListener('mousedown', function(e){
         document.removeEventListener('mousemove', cardMove);
         document.removeEventListener('mouseup', endMove);
         startColumn.classList.remove('start_card_move');
-        changeCardStatus(moveCard, cardStatus);
+        allTasks[moveCard.id].changeStatus(cardStatus);
         document.getElementsByClassName('has_moved_card')[0].appendChild(moveCard);
         document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
     }
