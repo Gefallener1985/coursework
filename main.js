@@ -19,13 +19,16 @@ class Card {
     createNewCard(){
         allTasks.push(this);
     }
-    changeStatus(status) {
+    changeStatus(status, ifclicked) {
         var taskStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
         var taskStatus = ['backlog_list', 'work_list', 'done_list'];
-        this.taskstatus = taskStatus[status];
-        document.getElementById(this.id).getElementsByClassName('move_this_task')[0].innerText = taskStatusBtn[status];
+        if (ifclicked) {
+            return taskStatus.indexOf(status);
+        } else {
+            this.taskstatus = taskStatus[status];
+            document.getElementById(this.id).getElementsByClassName('move_this_task')[0].innerText = taskStatusBtn[status];
+        }
     }
-    
 }
 
 function addCard(){
@@ -155,4 +158,18 @@ document.addEventListener('mousedown', function(e){
     }
 });
 
+document.addEventListener('click', function(e){
+    if (e.target.classList == 'move_this_task') {
+        var currentNode = e.target.parentElement.parentElement;
+        var cardId = currentNode.id;
+        var currentStatIndex = allTasks[cardId].changeStatus(allTasks[cardId]['taskstatus'], true);
+        if (currentStatIndex < 2) {
+            document.getElementsByClassName('board_container')[0].children[currentStatIndex + 1].appendChild(currentNode);
+            allTasks[cardId].changeStatus(currentStatIndex + 1)
+        } else {
+            document.getElementsByClassName('board_container')[0].children[currentStatIndex - 1].appendChild(currentNode);
+            allTasks[cardId].changeStatus(currentStatIndex - 1)
+        }
+    }
+});
 //TO DD - move card position and change his status from click on action buttons
