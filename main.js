@@ -29,6 +29,10 @@ class Card {
             document.getElementById(this.id).getElementsByClassName('move_this_task')[0].innerText = taskStatusBtn[status];
         }
     }
+    deleteTask(){
+        console.log('deleted')
+        console.log(allTasks)
+    }
 }
 
 function addCard(){
@@ -145,6 +149,11 @@ document.addEventListener('mousedown', function(e){
                 document.getElementsByClassName('board_container')[0].children[i].classList.add('has_moved_card');
             };
         }
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        } else { // old IE
+            document.selection.empty();
+        }
     };
     document.addEventListener('mousemove', cardMove);
     document.addEventListener('mouseup', endMove);
@@ -155,13 +164,21 @@ document.addEventListener('mousedown', function(e){
         allTasks[moveCard.id].changeStatus(cardStatus);
         document.getElementsByClassName('has_moved_card')[0].appendChild(moveCard);
         document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        } else { // old IE
+            document.selection.empty();
+        }
     }
 });
 
 document.addEventListener('click', function(e){
+    var currentNode, cardId;
+    if (e.target.parentElement.classList == 'card_action') {
+        currentNode = e.target.parentElement.parentElement;
+        cardId = currentNode.id;
+    }
     if (e.target.classList == 'move_this_task') {
-        var currentNode = e.target.parentElement.parentElement;
-        var cardId = currentNode.id;
         var currentStatIndex = allTasks[cardId].changeStatus(allTasks[cardId]['taskstatus'], true);
         if (currentStatIndex < 2) {
             document.getElementsByClassName('board_container')[0].children[currentStatIndex + 1].appendChild(currentNode);
@@ -170,6 +187,8 @@ document.addEventListener('click', function(e){
             document.getElementsByClassName('board_container')[0].children[currentStatIndex - 1].appendChild(currentNode);
             allTasks[cardId].changeStatus(currentStatIndex - 1)
         }
+    } else if (e.target.classList == 'del_this_task') {
+        allTasks[cardId].deleteTask();
     }
 });
-//TO DD - move card position and change his status from click on action buttons
+
