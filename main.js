@@ -8,6 +8,8 @@ var allTasks = [
     // }
 ];
 var notShow = false;
+var taskStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
+var taskStatus = ['backlog_list', 'work_list', 'done_list'];
 
 class Card {
     constructor(id, title, text, status){
@@ -20,8 +22,6 @@ class Card {
         allTasks.push(this);
     }
     changeStatus(status, ifclicked) {
-        var taskStatusBtn = ['Взять в работу', 'Завершить', 'Вернуть в работу'];
-        var taskStatus = ['backlog_list', 'work_list', 'done_list'];
         if (ifclicked) {
             return taskStatus.indexOf(status);
         } else {
@@ -29,10 +29,16 @@ class Card {
             document.getElementById(this.id).getElementsByClassName('move_this_task')[0].innerText = taskStatusBtn[status];
         }
     }
-    deleteTask(){
-        console.log('deleted')
-        console.log(allTasks)
-    }
+}
+
+function deleteTask(id){
+    for (var i = 0; i < allTasks.length; i++) {
+        if (allTasks[i] != null && allTasks[i]['id'] == id) {
+            allTasks[i] = null;
+        }
+    };
+    document.getElementById(id).remove();
+    saveToLocal();
 }
 
 function addCard(){
@@ -50,6 +56,7 @@ function addCard(){
         newCard.createNewCard();
         document.getElementsByClassName('modal_overlay')[0].remove();
         showCards();
+        saveToLocal()
     };
 };
 
@@ -93,11 +100,12 @@ function showCards() {
         document.getElementsByClassName('board_container')[0].children[i].innerHTML = '';
     };
     for (var i = 0; i < allTasks.length; i++) {
-        if (allTasks[i]['taskname'].length > 0) {
+        if (allTasks[i] != null && allTasks[i]['taskname'].length > 0) {
             var newCard = document.createElement('div');
             newCard.setAttribute('id', allTasks[i]['id']);
             newCard.setAttribute('class', 'card');
-            newCard.innerHTML = '<div class="card_title"></div><div class="card_text"></div><div class="card_action"><button class="del_this_task">Удалить</button><button class="move_this_task">Взять в работу</button></div>'
+            var statusIndex = taskStatus.indexOf(allTasks[i]['taskstatus']);
+            newCard.innerHTML = '<div class="card_title"></div><div class="card_text"></div><div class="card_action"><button class="del_this_task">Удалить</button><button class="move_this_task">' + taskStatusBtn[statusIndex] + '</button></div>'
             newCard.getElementsByClassName('card_title')[0].innerText = allTasks[i]['taskname'];
             newCard.getElementsByClassName('card_text')[0].innerText = allTasks[i]['tasktext'];
             document.getElementsByClassName(allTasks[i]['taskstatus'])[0].appendChild(newCard);
@@ -161,7 +169,13 @@ document.addEventListener('mousedown', function(e){
         document.removeEventListener('mousemove', cardMove);
         document.removeEventListener('mouseup', endMove);
         startColumn.classList.remove('start_card_move');
-        allTasks[moveCard.id].changeStatus(cardStatus);
+        var cardNumber;
+        for (var i = 0; i < allTasks.length; i++) {
+            if (allTasks[i] != null && allTasks[i]['id'] == moveCard.id) {
+                cardNumber = i;
+            }
+        };
+        allTasks[cardNumber].changeStatus(cardStatus);
         document.getElementsByClassName('has_moved_card')[0].appendChild(moveCard);
         document.getElementsByClassName('has_moved_card')[0].classList.remove('has_moved_card');
         if (window.getSelection) {
@@ -169,26 +183,81 @@ document.addEventListener('mousedown', function(e){
         } else { // old IE
             document.selection.empty();
         }
+        saveToLocal();
     }
 });
 
 document.addEventListener('click', function(e){
-    var currentNode, cardId;
+    var currentNode, cardId, cardNumber;
     if (e.target.parentElement.classList == 'card_action') {
         currentNode = e.target.parentElement.parentElement;
         cardId = currentNode.id;
+        for (var i = 0; i < allTasks.length; i++) {
+            if (allTasks[i] != null && allTasks[i]['id'] == cardId) {
+                cardNumber = i;
+            }
+        };
     }
     if (e.target.classList == 'move_this_task') {
-        var currentStatIndex = allTasks[cardId].changeStatus(allTasks[cardId]['taskstatus'], true);
+        var currentStatIndex = allTasks[cardNumber].changeStatus(allTasks[cardNumber]['taskstatus'], true);
         if (currentStatIndex < 2) {
             document.getElementsByClassName('board_container')[0].children[currentStatIndex + 1].appendChild(currentNode);
-            allTasks[cardId].changeStatus(currentStatIndex + 1)
+            allTasks[cardNumber].changeStatus(currentStatIndex + 1)
         } else {
             document.getElementsByClassName('board_container')[0].children[currentStatIndex - 1].appendChild(currentNode);
-            allTasks[cardId].changeStatus(currentStatIndex - 1)
+            allTasks[cardNumber].changeStatus(currentStatIndex - 1)
         }
     } else if (e.target.classList == 'del_this_task') {
-        allTasks[cardId].deleteTask();
+        deleteTask(cardId);
+    }
+    saveToLocal();
+});
+
+function loadTasks(){
+    if (localStorage.getItem('savedTasks') && localStorage.getItem('savedTasks').length > 2) {
+        allTasks = JSON.parse(localStorage.getItem('savedTasks'));
+        showCards();
+    } else {
+        var ajaxLoadUrl = 'http://localhost:3000/tasks'
+        var httpReques = new XMLHttpRequest;
+        httpReques.open('GET', ajaxLoadUrl);
+        httpReques.send();
+
+        httpReques.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200) {
+                var responseData = JSON.parse(httpReques.responseText);
+                allTasks = [];
+                for (var i = 0; i < responseData.length; i++) {
+                    var newId;
+                    var newTitle = responseData[i]['taskname']
+                    var newText = responseData[i]['tasktext'];
+                    var newStatus = responseData[i]['taskstatus'];
+                    if (allTasks.length == 0) {
+                        newId = 0
+                    } else {
+                        newId = allTasks[(allTasks.length - 1)]['id'] + 1;
+                    };
+                    var newCard = [];
+                    newCard[i] = new Card(newId, newTitle, newText, newStatus);
+                    newCard[i].createNewCard();
+                }
+                showCards();
+                saveToLocal();
+            }
+        }
+    };
+}
+loadTasks();
+
+document.getElementById('del_tasks').addEventListener('click', function(){
+    var realyDelete = confirm('Вы действительно хотите удалить все задачи и загрузить дефолтные с сервера?');
+    if (realyDelete) {
+        allTasks = [];
+        localStorage.removeItem('savedTasks');
+        location.reload();
     }
 });
 
+function saveToLocal(){
+    localStorage.setItem('savedTasks', JSON.stringify(allTasks));
+}

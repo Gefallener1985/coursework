@@ -1,22 +1,24 @@
 {
     "tasks" : [
         {
-            "id": 1, 
             "taskname": "Task 1", 
             "tasktext": "Text for this task (1)",
             "taskstatus": "backlog_list"
         },
         {
-            "id": 2, 
             "taskname": "Task 2", 
             "tasktext": "Text for this task (2)",
             "taskstatus": "backlog_list"
         },
         {
-            "id": 3, 
             "taskname": "Task 3", 
             "tasktext": "Text for this task (3)",
-            "taskstatus": "backlog_list"
+            "taskstatus": "work_list"
+        },
+        {
+            "taskname": "Task 4", 
+            "tasktext": "Text for this task (4)",
+            "taskstatus": "done_list"
         }
     ]
 }
